@@ -771,6 +771,7 @@ pub static LINTS: &[&crate::LintInfo] = &[
     crate::use_self::USE_SELF_INFO,
     crate::useless_concat::USELESS_CONCAT_INFO,
     crate::useless_conversion::USELESS_CONVERSION_INFO,
+    crate::useless_default_generic_parameters::USELESS_DEFAULT_GENERIC_PARAMETERS_INFO,
     crate::vec::USELESS_VEC_INFO,
     crate::vec_init_then_push::VEC_INIT_THEN_PUSH_INFO,
     crate::visibility::NEEDLESS_PUB_SELF_INFO,

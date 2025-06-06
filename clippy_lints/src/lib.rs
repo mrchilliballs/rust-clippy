@@ -398,6 +398,7 @@ mod upper_case_acronyms;
 mod use_self;
 mod useless_concat;
 mod useless_conversion;
+mod useless_default_generic_parameters;
 mod vec;
 mod vec_init_then_push;
 mod visibility;
@@ -951,5 +952,6 @@ pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
     store.register_late_pass(|_| Box::new(cloned_ref_to_slice_refs::ClonedRefToSliceRefs::new(conf)));
     store.register_late_pass(|_| Box::new(infallible_try_from::InfallibleTryFrom));
     store.register_late_pass(|_| Box::new(coerce_container_to_any::CoerceContainerToAny));
+    store.register_late_pass(|_| Box::new(useless_default_generic_parameters::UselessDefaultGenericParameters));
     // add lints here, do not remove this comment, it's used in `new_lint`
 }
