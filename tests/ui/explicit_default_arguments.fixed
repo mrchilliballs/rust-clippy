@@ -1,0 +1,113 @@
+#![warn(clippy::explicit_default_arguments)]
+
+struct MyError;
+struct Long<A, B, C, D>(A, B, C, D);
+type Result<T = ()> = core::result::Result<T, MyError>;
+type Option<T = i32> = core::option::Option<T>;
+type MyResult<T, E = MyError> = core::result::Result<T, E>;
+type LongA<A, B, C = i32, D = u32> = Long<A, B, C, D>;
+
+const FOO: Result = Ok(());
+//~^ explicit_default_arguments
+const BAR: Result = Ok(());
+
+static BAZ: Result = Ok(());
+//~^ explicit_default_arguments
+static QUX: Result = Ok(());
+
+static OTHER_X: Option = Some(0i32);
+//~^ explicit_default_arguments
+static OTHER_Y: Option<u32> = Some(0u32);
+
+static OTEHR_Z: MyResult<()> = Ok(());
+static OTEHR_Q: MyResult<()> = Ok(());
+//~^ explicit_default_arguments
+
+static LONG_AD: LongA<i16, u16> = Long(0, 0, 0, 0);
+//~^ explicit_default_arguments
+static LONG_A: LongA<i16, u16, i8, u8> = Long(0, 0, 0, 0);
+
+fn foo(a: Result) -> Result {
+    //~^ explicit_default_arguments
+    //~| explicit_default_arguments
+    unimplemented!()
+}
+fn bar(a: Result) -> Result {
+    unimplemented!()
+}
+
+struct A {
+    foo: Result,
+    //~^ explicit_default_arguments
+    bar: Result,
+}
+struct B(
+    Result,
+    //~^ explicit_default_arguments
+    Result,
+);
+enum C {
+    Foo(Result),
+    //~^ explicit_default_arguments
+    Bar(Result),
+}
+
+union D {
+    foo: std::mem::ManuallyDrop<Result>,
+    //~^ explicit_default_arguments
+    bar: std::mem::ManuallyDrop<Result>,
+}
+
+type Foo = Result;
+//~^ explicit_default_arguments
+type Bar = Result;
+
+trait E {
+    type Foo;
+    type Bar;
+
+    fn baz(&self) -> Result;
+    //~^ explicit_default_arguments
+    fn qux(&self) -> Result;
+}
+
+impl E for A {
+    type Foo = Result;
+    //~^ explicit_default_arguments
+    type Bar = Result;    
+
+    fn baz(&self) -> Result {
+    //~^ explicit_default_arguments
+        unimplemented!()
+    }
+    fn qux(&self) -> Result {
+        unimplemented!()
+    }
+}
+
+fn baz() -> impl E<Foo = Result> {
+    //~^ explicit_default_arguments
+    A {
+        foo: Ok(()),
+        bar: Ok(()),
+    }
+}
+fn qux() -> impl E<Foo = Result> {
+    A {
+        foo: Ok(()),
+        bar: Ok(()),
+    }
+}
+
+fn main() {
+    let a: Result = Ok(());
+    //~^ explicit_default_arguments
+    let b: Result = Ok(());
+
+    let f1: fn(Result) -> Result = |_x| Ok(());
+    //~^ explicit_default_arguments
+    //~| explicit_default_arguments
+    let f2: fn(Result) -> Result = |_x| Ok(());
+
+    let test = String::new();
+}

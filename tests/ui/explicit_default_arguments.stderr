@@ -1,0 +1,119 @@
+error: use
+  --> tests/ui/explicit_default_arguments.rs:10:12
+   |
+LL | const FOO: Result<()> = Ok(());
+   |            ^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `Result`
+   |
+   = note: `-D clippy::explicit-default-arguments` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::explicit_default_arguments)]`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:14:13
+   |
+LL | static BAZ: Result<()> = Ok(());
+   |             ^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `Result`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:18:17
+   |
+LL | static OTHER_X: Option<i32> = Some(0i32);
+   |                 ^^^^^^^^^^^ help: unnecessary generics, `i32` already is the default: `Option`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:23:17
+   |
+LL | static OTEHR_Q: MyResult<(), MyError> = Ok(());
+   |                 ^^^^^^^^^^^^^^^^^^^^^ help: unnecessary generics, `MyError` already is the default: `MyResult<()>`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:26:17
+   |
+LL | static LONG_AD: LongA<i16, u16, i32, u32> = Long(0, 0, 0, 0);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^ help: unnecessary generics, [`i32`, `u32`] already are already the defaults: `LongA<i16, u16>`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:30:11
+   |
+LL | fn foo(a: Result<()>) -> Result<()> {
+   |           ^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `Result`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:30:26
+   |
+LL | fn foo(a: Result<()>) -> Result<()> {
+   |                          ^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `Result`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:40:10
+   |
+LL |     foo: Result<()>,
+   |          ^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `Result`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:45:5
+   |
+LL |     Result<()>,
+   |     ^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `Result`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:50:9
+   |
+LL |     Foo(Result<()>),
+   |         ^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `Result`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:56:33
+   |
+LL |     foo: std::mem::ManuallyDrop<Result<()>>,
+   |                                 ^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `Result`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:61:12
+   |
+LL | type Foo = Result<()>;
+   |            ^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `Result`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:69:22
+   |
+LL |     fn baz(&self) -> Result<()>;
+   |                      ^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `Result`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:75:16
+   |
+LL |     type Foo = Result<()>;
+   |                ^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `Result`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:79:22
+   |
+LL |     fn baz(&self) -> Result<()> {
+   |                      ^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `Result`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:88:26
+   |
+LL | fn baz() -> impl E<Foo = Result<()>> {
+   |                          ^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `Result`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:103:12
+   |
+LL |     let a: Result<()> = Ok(());
+   |            ^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `Result`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:107:16
+   |
+LL |     let f1: fn(Result<()>) -> Result<()> = |_x| Ok(());
+   |                ^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `Result`
+
+error: use
+  --> tests/ui/explicit_default_arguments.rs:107:31
+   |
+LL |     let f1: fn(Result<()>) -> Result<()> = |_x| Ok(());
+   |                               ^^^^^^^^^^ help: unnecessary generics, `()` already is the default: `Result`
+
+error: aborting due to 19 previous errors
+
