@@ -74,10 +74,10 @@ trait E {
 impl E for A {
     type Foo = Result<()>;
     //~^ explicit_default_arguments
-    type Bar = Result;    
+    type Bar = Result;
 
     fn baz(&self) -> Result<()> {
-    //~^ explicit_default_arguments
+        //~^ explicit_default_arguments
         unimplemented!()
     }
     fn qux(&self) -> Result {

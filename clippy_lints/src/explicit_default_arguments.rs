@@ -11,16 +11,24 @@ use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for the usage of a generic argument when the type already defines a default.
     ///
     /// ### Why is this bad?
+    /// It is redundant and adds visual clutter.
     ///
     /// ### Example
     /// ```no_run
-    /// // example code where clippy issues a warning
+    /// type Result<T = ()> = core::result::Result<T, MyError>;
+    /// fn foo() -> Result<()> {
+    ///     Ok(())
+    /// }
     /// ```
     /// Use instead:
     /// ```no_run
-    /// // example code which does not raise clippy warning
+    /// type Result<T = ()> = core::result::Result<T, MyError>;
+    /// fn foo() -> Result {
+    ///     Ok(())
+    ///}
     /// ```
     #[clippy::version = "1.90.0"]
     pub EXPLICIT_DEFAULT_ARGUMENTS,
@@ -43,7 +51,7 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitDefaultArguments {
             && let Some(last_path_segment) = path.segments.last()
             && let Some(generic_args) = last_path_segment.args
             && let Res::Def(DefKind::TyAlias, def_id) = cx.qpath_res(&qpath, ty.hir_id)
-            && generic_args.args.len() > 0
+            && !generic_args.args.is_empty()
         {
             let default_generic_arg_types: Vec<_> = cx
                 .tcx
@@ -91,61 +99,54 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitDefaultArguments {
 
                 defaults.push(snippet(cx, actual.0.span, "<default>"));
             }
-                let sugg = if let Some(first_default) = first_default
-                    && first_default > 0
-                {
-                    let mut string = last_path_segment.ident.to_string();
-                    let mut iter = generic_arg_types.iter().enumerate();
-                    string.push('<');
-                    while let Some((i, Some((ty, _)))) = iter.next() {
-                        if i >= first_default {
-                            break;
-                        }
-                        string.push_str(&snippet(cx, ty.span, "<default>"));
-                        if i + 1 < first_default {
-                            string.push_str(", ")
-                        }
+            let sugg = if let Some(first_default) = first_default
+                && first_default > 0
+            {
+                let mut string = last_path_segment.ident.to_string();
+                let mut iter = generic_arg_types.iter().enumerate();
+                string.push('<');
+                while let Some((i, Some((ty, _)))) = iter.next() {
+                    if i >= first_default {
+                        break;
                     }
-                    string.push('>');
-                    string
-                } else {
-                    last_path_segment.ident.to_string()
-                };
-                if defaults.len() == 0 {
-                    return;
+                    string.push_str(&snippet(cx, ty.span, "<default>"));
+                    if i + 1 < first_default {
+                        string.push_str(", ");
+                    }
                 }
-                // TODO: Use constants for strings when possible
-                let msg = if defaults.len() > 1 {
-                    let mut defaults_str = String::new();
-                    for (i, default) in defaults.iter().enumerate() {
-                        defaults_str.push('`');
-                        defaults_str.push_str(&default);
-                        defaults_str.push('`');
+                string.push('>');
+                string
+            } else {
+                last_path_segment.ident.to_string()
+            };
+            if defaults.is_empty() {
+                return;
+            }
+            // TODO: Use constants for strings when possible
+            let msg = if defaults.len() == 1 {
+                format!("unnecessary generics, `{}` already is the default", defaults[0])
+            } else {
+                let mut defaults_str = String::new();
+                for (i, default) in defaults.iter().enumerate() {
+                    defaults_str.push('`');
+                    defaults_str.push_str(default);
+                    defaults_str.push('`');
 
-                        if i < defaults.len() - 1 {
-                            defaults_str.push_str(", ");
-                        }
+                    if i < defaults.len() - 1 {
+                        defaults_str.push_str(", ");
                     }
-                    format!(
-                        "unnecessary generics, [{}] already are already the defaults",
-                        defaults_str
-                    )
-                } else {
-                    format!(
-                        "unnecessary generics, `{}` already is the default",
-                        defaults[0]
-                    )
-                };
-                span_lint_and_sugg(
-                    cx,
-                    EXPLICIT_DEFAULT_ARGUMENTS,
-                    ty.span,
-                    "use",
-                    msg,
-                    sugg,
-                    rustc_errors::Applicability::MachineApplicable,
-                );
-
+                }
+                format!("unnecessary generics, [{defaults_str}] already are already the defaults",)
+            };
+            span_lint_and_sugg(
+                cx,
+                EXPLICIT_DEFAULT_ARGUMENTS,
+                ty.span,
+                "use",
+                msg,
+                sugg,
+                rustc_errors::Applicability::MachineApplicable,
+            );
         }
     }
 }
