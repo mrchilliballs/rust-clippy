@@ -36,13 +36,11 @@ declare_clippy_lint! {
     "default lint description"
 }
 
-// TODO: Investigate GitHub comment about type inference
-// FIXME: Cover more edge cases with tests, i.e., modules and std type aliases, and make them less
-// confusing
 
 declare_lint_pass!(ExplicitDefaultArguments => [EXPLICIT_DEFAULT_ARGUMENTS]);
 
 // TODO: Refactor and improve naming. Make it right.
+// TODO: Will type inference be an issue?
 impl<'tcx> LateLintPass<'tcx> for ExplicitDefaultArguments {
     fn check_ty(&mut self, cx: &LateContext<'tcx>, ty: &'tcx rustc_hir::Ty<'_, rustc_hir::AmbigArg>) {
         // TODO: Double-check for ICEs and other issues
@@ -53,6 +51,7 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitDefaultArguments {
             && let Res::Def(DefKind::TyAlias, def_id) = cx.qpath_res(&qpath, ty.hir_id)
             && !generic_args.args.is_empty()
         {
+            // FIXME: Use a simpler comparision instead of type lowering to avoid issues
             let default_generic_arg_types: Vec<_> = cx
                 .tcx
                 .generics_of(def_id)
@@ -73,7 +72,6 @@ impl<'tcx> LateLintPass<'tcx> for ExplicitDefaultArguments {
                 .iter()
                 .map(|arg| {
                     if let GenericArg::Type(ty) = arg {
-                        // TODO: Will these always be outside bodies?
                         Some((ty, lower_ty(cx.tcx, ty.as_unambig_ty())))
                     } else {
                         None

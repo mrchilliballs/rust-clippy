@@ -1,113 +1,144 @@
 #![warn(clippy::explicit_default_arguments)]
 
-struct MyError;
-struct Long<A, B, C, D>(A, B, C, D);
-type Result<T = ()> = core::result::Result<T, MyError>;
-type Option<T = i32> = core::option::Option<T>;
-type MyResult<T, E = MyError> = core::result::Result<T, E>;
-type LongA<A, B, C = i32, D = u32> = Long<A, B, C, D>;
+use std::marker::PhantomData;
 
-const FOO: Result<()> = Ok(());
+// Test types
+struct DatabaseError;
+struct NetworkError;
+struct ComplexStruct<A, B, C, D>(PhantomData<(A, B, C, D)>);
+
+// Type aliases with defaults
+type DbResult<T = ()> = Result<T, DatabaseError>;
+type NetResult<T = &'static str> = Result<T, NetworkError>;
+type Optional<T = i64> = Option<T>;
+type ComplexThing<A, B, C = u32, D = f64> = ComplexStruct<A, B, C, D>;
+type BoxedDefault<T = i128> = Box<T>;
+
+// Module to test scoping
+mod outer {
+    pub type NestedResult<T = usize> = Result<T, ()>;
+}
+
+// Const declarations
+const DB_CONST: DbResult<()> = Ok(());
 //~^ explicit_default_arguments
-const BAR: Result = Ok(());
-
-static BAZ: Result<()> = Ok(());
+const DB_OK: DbResult = Ok(());
+const NET_CONST: NetResult<&str> = Ok("");
 //~^ explicit_default_arguments
-static QUX: Result = Ok(());
+const NET_OK: NetResult = Ok("");
 
-static OTHER_X: Option<i32> = Some(0i32);
+// Static declarations
+static STATIC_DB: DbResult<()> = Ok(());
 //~^ explicit_default_arguments
-static OTHER_Y: Option<u32> = Some(0u32);
-
-static OTEHR_Z: MyResult<()> = Ok(());
-static OTEHR_Q: MyResult<(), MyError> = Ok(());
+static STATIC_NET: NetResult = Ok("");
+static OPTIONAL: Optional<i64> = Some(42);
 //~^ explicit_default_arguments
+static CUSTOM_OPT: Optional<f32> = Some(1.5);
 
-static LONG_AD: LongA<i16, u16, i32, u32> = Long(0, 0, 0, 0);
-//~^ explicit_default_arguments
-static LONG_A: LongA<i16, u16, i8, u8> = Long(0, 0, 0, 0);
+// Associated types in traits
+trait ExampleTrait {
+    type AssocDb;
+    type AssocNet;
+    
+    fn method() -> DbResult<()>;
+    //~^ explicit_default_arguments
+}
 
-fn foo(a: Result<()>) -> Result<()> {
+impl ExampleTrait for () {
+    type AssocDb = DbResult<()>;
+    //~^ explicit_default_arguments
+    type AssocNet = NetResult;
+    
+    fn method() -> DbResult<()> {
+        //~^ explicit_default_arguments
+        Ok(())
+    }
+}
+
+// Function signatures
+fn db_function(arg: DbResult<()>) -> DbResult<()> {
     //~^ explicit_default_arguments
     //~| explicit_default_arguments
-    unimplemented!()
-}
-fn bar(a: Result) -> Result {
-    unimplemented!()
+    arg
 }
 
-struct A {
-    foo: Result<()>,
-    //~^ explicit_default_arguments
-    bar: Result,
+fn net_function(arg: NetResult) -> NetResult {
+    arg
 }
-struct B(
-    Result<()>,
+
+// Struct fields
+struct User {
+    db_field: DbResult<()>,
     //~^ explicit_default_arguments
-    Result,
+    net_field: NetResult,
+}
+
+// Tuple struct
+struct Response(
+    DbResult<()>,
+    //~^ explicit_default_arguments
+    NetResult,
 );
-enum C {
-    Foo(Result<()>),
+
+// Enum variants
+enum ApiResponse {
+    Success(DbResult<()>),
     //~^ explicit_default_arguments
-    Bar(Result),
+    Failure(NetResult),
 }
 
-union D {
-    foo: std::mem::ManuallyDrop<Result<()>>,
+// Union fields
+union DataHolder {
+    db: std::mem::ManuallyDrop<DbResult<()>>,
     //~^ explicit_default_arguments
-    bar: std::mem::ManuallyDrop<Result>,
+    net: std::mem::ManuallyDrop<NetResult>,
 }
 
-type Foo = Result<()>;
+// Type aliases
+type DbAlias = DbResult<()>;
 //~^ explicit_default_arguments
-type Bar = Result;
+type NetAlias = NetResult;
 
-trait E {
-    type Foo;
-    type Bar;
+// Complex type scenarios
+static COMPLEX_FULL: ComplexThing<i8, u8, u32, f64> = ComplexStruct(PhantomData);
+//~^ explicit_default_arguments
+static COMPLEX_PARTIAL: ComplexThing<i16, u16, u8> = ComplexStruct(PhantomData);
 
-    fn baz(&self) -> Result<()>;
+
+// Nested module type
+static NESTED_RESULT: outer::NestedResult<usize> = Ok(42);
+//~^ explicit_default_arguments
+
+// Trait implementation with generics
+impl<T> ExampleTrait for ComplexThing<T, T> {
+    type AssocDb = DbResult<()>;
     //~^ explicit_default_arguments
-    fn qux(&self) -> Result;
-}
-
-impl E for A {
-    type Foo = Result<()>;
-    //~^ explicit_default_arguments
-    type Bar = Result;
-
-    fn baz(&self) -> Result<()> {
+    type AssocNet = NetResult;
+    
+    fn method() -> DbResult<()> {
         //~^ explicit_default_arguments
-        unimplemented!()
-    }
-    fn qux(&self) -> Result {
-        unimplemented!()
-    }
-}
-
-fn baz() -> impl E<Foo = Result<()>> {
-    //~^ explicit_default_arguments
-    A {
-        foo: Ok(()),
-        bar: Ok(()),
-    }
-}
-fn qux() -> impl E<Foo = Result> {
-    A {
-        foo: Ok(()),
-        bar: Ok(()),
+        Ok(())
     }
 }
 
 fn main() {
-    let a: Result<()> = Ok(());
+    // Local variables
+    let a: DbResult<()> = Ok(());
     //~^ explicit_default_arguments
-    let b: Result = Ok(());
-
-    let f1: fn(Result<()>) -> Result<()> = |_x| Ok(());
+    let b: NetResult = Ok("");
+    
+    // Function pointers
+    let f: fn(DbResult<()>) -> DbResult<()> = db_function;
     //~^ explicit_default_arguments
     //~| explicit_default_arguments
-    let f2: fn(Result) -> Result = |_x| Ok(());
+    
+    // Expressions with std types
+    let s = String::new();
+    let v: Vec<String> = vec![s.clone()];
+    let _o: Option<Vec<String>> = Some(v);
 
-    let test = String::new();
+    // Box with default
+    let boxed_int: BoxedDefault<i128> = Box::new(0);
+    //~^ explicit_default_arguments
+    let boxed_float: BoxedDefault<f64> = Box::new(0.0);
 }
